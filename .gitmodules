@@ -3,4 +3,4 @@
 	url = https://github.com/icedraco/simutool.git
 [submodule "bridge"]
 	path = bridge
-	url = git@github.com:icedraco/simucopter-bridge.git
+	url = https://github.com/icedraco/simucopter-bridge.git
