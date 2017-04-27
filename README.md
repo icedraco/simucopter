@@ -1,39 +1,21 @@
 # Installing ArduPilot and SimuCopter
 Follow the steps below to install ArduPilot and SimuCopter on the UAV / Raspberry Pi.
 
+```
+cd ~
+git clone https://github.com/icedraco/simucopter.git simucopter
+cd simucopter
+bash ./install.sh
+```
 
-## Install Prerequisites
-    sudo apt-get install python-matplotlib python-serial python-wxgtk2.8 python-wxtools python-lxml python-scipy python-opencv ccache gawk git python-pip python-pexpect libzmq3-dev
-    
-    sudo pip install future pymavlink MAVProxy
-
-
-## Install ArduPilot
-    cd ~
-    git clone https://github.com/ArduPilot/ardupilot
-    cd ardupilot
-    git submodule update --init --recursive
-
-Reference URL: http://ardupilot.org/dev/docs/setting-up-sitl-on-linux.html
+The install script will attempt to build everything, and if necessary,
+also download and install ArduPilot for you in the home directory.
 
 
-## Install SimuCopter
-    cd ~
-    git clone https://github.com/icedraco/simucopter.git simucopter
-    cd simucopter
-    git submodule update --init --recursive
+## Testing Deploy Script
 
-
-## Patch ArduCopter code
-    cp ~/simucopter/patch/control_simulink.cpp ~/ardupilot/ArduCopter/
-    cd ~/ardupilot
-    patch -p5 < ~/simucopter/patch/simucopter-20170306.patch
-
-
-## Test Deploy Script
-
-You may now use simutool to deploy (i.e., compile and run) the arducopter executable and make sure that everything compiles as it should:
-
+You may use simutool directly to deploy (i.e., compile and run) the arducopter executable
+and make sure that everything compiles as it should:
 
     python ~/simucopter/simutool/simutool.py deploy TestFlightMode
 
@@ -47,9 +29,10 @@ Make sure your Simulink build path is set to **/home/pi/simucopter** and that th
 
 You may watch the compilation/execution process in the log file:
 
-    tail -f ~/simucopter/runtime.log
+    tail -f ~/TestFlightMode.log
 
-It will be created as soon as the deploy script is executed by the Simulink agent. If **runtime.log** is not in ~/simucopter (it should be), try looking in ~ instead.
+It will be created as soon as the deploy script is executed by the Simulink
+agent.
 
 
 #### MAVProxy Configuration
@@ -70,10 +53,17 @@ Currently, there is no way to gracefully shut down the system in mid-operation. 
 
 ## Updating ArduPilot
 
-When updating ArduPilot to the latest version from its Git repository, it is necessary to stash the modifications we made to the source code, update the source from origin, then restore the SimuCopter changes onto the newly updated source code:
+The most fool-proof way to go about doing that is to remove the existing `~/ardupilot`
+directory and re-run `install.sh` from `simucopter`. This will download a new current
+copy to the RaspberryPi and re-install the SimuCopter code. Downloading ArduPilot,
+however may take a while.
 
+You may also try to `git stash` the changes made to `ardupilot`, `git pull` to update
+ArduPilot, then `git stash pop` to restore those changes:
 
     cd ~/ardupilot
     git stash
     git pull
     git stash pop
+
+This operation, however, may be less trivial.
