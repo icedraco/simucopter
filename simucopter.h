@@ -6,14 +6,12 @@
 // Simulink Agent -> prepare bridge client/requester
 //-----------------------------------------------------------------------------
 #ifdef SIMULINK_AGENT
-#include "Copter.h"
 #include "simucopter-requester.h"
 
 //-----------------------------------------------------------------------------
 // Bridge Diagnostic Component
 //-----------------------------------------------------------------------------
 #elif DIAGNOSTIC
-#include "Copter.h"
 #include "simucopter-requester.h"
 
 //-----------------------------------------------------------------------------
@@ -21,10 +19,10 @@
 //-----------------------------------------------------------------------------
 #else
 #include <pthread.h>
-#include "Copter.h"
 #include "simucopter-copter.h"
 #endif
 
+#include "Copter.h"
 
 // TODO: DETERMINE THE NAME OF THE H FILE!
 #ifndef DIAGNOSTIC
