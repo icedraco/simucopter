@@ -67,7 +67,6 @@ fi
 
 echo
 echo ">>> Installing prerequisites..."
-echo
 sudo apt -y install ${APT_PACKAGES}
 sudo pip install ${PIP_PACKAGES}
 
@@ -85,7 +84,6 @@ fi
 
 echo
 echo ">>> Cleaning all links..."
-echo
 find -type l -print -delete
 
 # hard links
@@ -97,23 +95,23 @@ rm -fv src-diagnostic/simucopter* src-diagnostic/Copter.h
 ###############################################################################
 
 echo
-echo ">>> Linking simucopter.h across components..."
+echo ">>> Preparing ardupilot source tree (src-ardupilot)..."
 echo
-for d in src-agent src-ardupilot; do
-    ln -v "${SIMUCOPTER_ROOT}/simucopter.h" "${d}/"
 
-    # verify
-    if [ ! -f "${d}/simucopter.h" ]; then
-        echo "FATAL: simucopter.h NOT FOUND AT DESTINATION: ${d}"
-        exit 1
-    fi
-done
+ln -sv "${SIMUCOPTER_ROOT}/simucopter.h" "${SIMUCOPTER_ROOT}/src-ardupilot/"
+
+###############################################################################
+
+echo
+echo ">>> Preparing agent (MATLAB) source tree (src-agent)..."
+
+ln -sv "${SIMUCOPTER_ROOT}/simucopter.h" "${SIMUCOPTER_ROOT}/src-agent/"
+ln -sv "${SIMUCOPTER_ROOT}/bridge/bridge."* "${SIMUCOPTER_ROOT}/src-agent/"
 
 ###############################################################################
 
 echo
 echo ">>> Preparing bridge diagnostic component..."
-echo
 
 for f in ${DIAG_SOURCES}; do
     ln -sv "${SIMUCOPTER_ROOT}/${f}" "${SIMUCOPTER_ROOT}/src-diagnostic/"
@@ -144,7 +142,7 @@ echo
 
 #------------------------------------------------------------------------------
 # NOTE: DO NOT SYMLINK FILES INTO ArduCopter DIRECTORY!
-#       SYMLINKS ARE DYNAMICALLY CREATED AND DESTROYED, AND THIS LINK WILL TOO!
+#       SYMLINKS ARE DYNAMICALLY CREATED AND DESTROYED PER SIMULINK RUN!
 #------------------------------------------------------------------------------
 
 echo "  * Copying/linking SimuCopter files into ArduPilot..."
