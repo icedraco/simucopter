@@ -40,6 +40,56 @@ do_install_ardupilot () {
     set +e  # DISABLE abort on non-zero return code (important!)
 }
 
+do_install_source_tree () {
+    echo
+    echo ">>> Loading submodules (if necessary)..."
+    echo
+    if [ ! -f "bridge/bridge.cpp" ] || [ ! -f "simutool/simutool.py" ]; then
+        echo "      -> MISSING!"
+        git submodule update --init --recursive
+    fi
+
+    ###########################################################################
+
+    echo
+    echo ">>> Cleaning all links..."
+    find -type l -print -delete
+
+    # hard links
+    rm -fv src-ardupilot/simucopter.h
+    rm -fv src-agent/simucopter.h src-agent/bridge.*
+    rm -fv src-diagnostic/simucopter* src-diagnostic/Copter.h
+
+
+    ###########################################################################
+
+    echo
+    echo ">>> Preparing ardupilot source tree (src-ardupilot)..."
+    echo
+
+    ln -sv "${SIMUCOPTER_ROOT}/simucopter.h" "${SIMUCOPTER_ROOT}/src-ardupilot/"
+
+    ###########################################################################
+
+    echo
+    echo ">>> Preparing agent (MATLAB) source tree (src-agent)..."
+
+    # using hard links so that copying agent files to the MATLAB PC won't become a
+    # problem.
+
+    ln -v "${SIMUCOPTER_ROOT}/simucopter.h" "${SIMUCOPTER_ROOT}/src-agent/"
+    ln -v "${SIMUCOPTER_ROOT}/bridge/bridge."* "${SIMUCOPTER_ROOT}/src-agent/"
+
+    ###########################################################################
+
+    echo
+    echo ">>> Preparing bridge diagnostic component..."
+
+    for f in ${DIAG_SOURCES}; do
+        ln -sv "${SIMUCOPTER_ROOT}/${f}" "${SIMUCOPTER_ROOT}/src-diagnostic/"
+    done
+
+}
 echo "--- SimuCopter System Installer Script 1.0 -----------------------------"
 
 ###############################################################################
@@ -49,9 +99,10 @@ echo ">>> Locating ArduPilot..."
 if [ ! -d "${ARDUPILOT_ROOT}" ]; then
     echo "  > ArduPilot directory not found at ${ARDUPILOT_ROOT}!"
     echo "  > Attempt to install it from GitHub?"
-    select ans in "Install from GitHub" "Quit"; do
+    select ans in "Install from GitHub (recommended)" "Build SimuCopter tree only (agent-side)" "Quit"; do
         case ${ans} in
-            "Install from GitHub" ) do_install_ardupilot; break;;
+            "Install from GitHub (recommended)" ) do_install_ardupilot; break;;
+            "Build SimuCopter tree only (agent-side)" ) do_install_source_tree; exit;;
             "Quit" ) exit;;
         esac
     done
@@ -72,53 +123,7 @@ sudo pip install ${PIP_PACKAGES}
 
 ###############################################################################
 
-echo
-echo ">>> Loading submodules (if necessary)..."
-echo
-if [ ! -f "bridge/bridge.cpp" ] || [ ! -f "simutool/simutool.py" ]; then
-    echo "      -> MISSING!"
-    git submodule update --init --recursive
-fi
-
-###############################################################################
-
-echo
-echo ">>> Cleaning all links..."
-find -type l -print -delete
-
-# hard links
-rm -fv src-ardupilot/simucopter.h
-rm -fv src-agent/simucopter.h src-agent/bridge.*
-rm -fv src-diagnostic/simucopter* src-diagnostic/Copter.h
-
-
-###############################################################################
-
-echo
-echo ">>> Preparing ardupilot source tree (src-ardupilot)..."
-echo
-
-ln -sv "${SIMUCOPTER_ROOT}/simucopter.h" "${SIMUCOPTER_ROOT}/src-ardupilot/"
-
-###############################################################################
-
-echo
-echo ">>> Preparing agent (MATLAB) source tree (src-agent)..."
-
-# using hard links so that copying agent files to the MATLAB PC won't become a
-# problem.
-
-ln -v "${SIMUCOPTER_ROOT}/simucopter.h" "${SIMUCOPTER_ROOT}/src-agent/"
-ln -v "${SIMUCOPTER_ROOT}/bridge/bridge."* "${SIMUCOPTER_ROOT}/src-agent/"
-
-###############################################################################
-
-echo
-echo ">>> Preparing bridge diagnostic component..."
-
-for f in ${DIAG_SOURCES}; do
-    ln -sv "${SIMUCOPTER_ROOT}/${f}" "${SIMUCOPTER_ROOT}/src-diagnostic/"
-done
+do_install_source_tree
 
 ###############################################################################
 
