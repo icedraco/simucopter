@@ -1,23 +1,38 @@
---- /home/pi/ardupilot/./Tools/ardupilotwaf/boards.py	2017-03-06 00:42:34.419467097 +0200
-+++ ./Tools/ardupilotwaf/boards.py	2017-03-06 01:38:09.014585580 +0200
-@@ -200,6 +200,7 @@
+diff -Naur ardupilot-orig/ArduCopter/Copter.h ardupilot/ArduCopter/Copter.h
+--- ardupilot-orig/ArduCopter/Copter.h	2017-04-27 12:14:04.451794122 +0300
++++ ardupilot/ArduCopter/Copter.h	2017-04-27 15:10:04.333315055 +0300
+@@ -771,6 +771,8 @@
+     void delay(uint32_t ms);
+     bool acro_init(bool ignore_checks);
+     void acro_run();
++    bool simulink_init(bool ignore_checks);
++    void simulink_run();
+     void get_pilot_desired_angle_rates(int16_t roll_in, int16_t pitch_in, int16_t yaw_in, float &roll_out, float &pitch_out, float &yaw_out);
+     bool althold_init(bool ignore_checks);
+     void althold_run();
+diff -Naur ardupilot-orig/ArduCopter/defines.h ardupilot/ArduCopter/defines.h
+--- ardupilot-orig/ArduCopter/defines.h	2017-04-27 12:14:04.501792955 +0300
++++ ardupilot/ArduCopter/defines.h	2017-04-27 15:09:36.593483351 +0300
+@@ -103,6 +103,8 @@
+     THROW =        18,  // throw to launch mode using inertial/GPS system, no pilot input
+     AVOID_ADSB =   19,  // automatic avoidance of obstacles in the macro scale - e.g. full-sized aircraft
+     GUIDED_NOGPS = 20,  // guided mode but only accepts attitude and altitude
++   
++    SIMULINK =     66,  // simulink flight mode
+ };
  
-         env.LIB += [
-             'm',
-+            'zmq'
-         ]
- 
-         cfg.check_librt(env)
---- /home/pi/ardupilot/./ArduCopter/flight_mode.cpp	2017-03-06 00:42:33.639473193 +0200
-+++ ./ArduCopter/flight_mode.cpp	2017-03-06 01:10:05.347391730 +0200
+ enum mode_reason_t {
+diff -Naur ardupilot-orig/ArduCopter/flight_mode.cpp ardupilot/ArduCopter/flight_mode.cpp
+--- ardupilot-orig/ArduCopter/flight_mode.cpp	2017-04-27 12:14:04.501792955 +0300
++++ ardupilot/ArduCopter/flight_mode.cpp	2017-04-27 15:00:10.756916245 +0300
 @@ -25,6 +25,10 @@
      }
  
      switch (mode) {
 +        case SIMULINK:
-+            success = simulink_init(ignore_checks);
-+            break;
-+
++	    success = simulink_init(ignore_checks);
++	    break;
++	
          case ACRO:
              #if FRAME_CONFIG == HELI_FRAME
                  success = heli_acro_init(ignore_checks);
@@ -38,49 +53,14 @@
      switch (mode) {
 +    case SIMULINK:
 +        port->print("SIMULINK");
-+        break;
++	break;
      case STABILIZE:
          port->printf("STABILIZE");
          break;
---- /home/pi/ardupilot/./ArduCopter/defines.h	2017-03-06 00:42:33.619473349 +0200
-+++ ./ArduCopter/defines.h	2017-03-06 01:10:13.567327994 +0200
-@@ -103,6 +103,8 @@
-     THROW =        18,  // throw to launch mode using inertial/GPS system, no pilot input
-     AVOID_ADSB =   19,  // automatic avoidance of obstacles in the macro scale - e.g. full-sized aircraft
-     GUIDED_NOGPS = 20,  // guided mode but only accepts attitude and altitude
-+
-+    SIMULINK =     66,  // simulink flight mode
- };
- 
- enum mode_reason_t {
---- /home/pi/ardupilot/./ArduCopter/system.cpp	2017-03-06 00:42:33.659473036 +0200
-+++ ./ArduCopter/system.cpp	2017-03-06 01:09:22.607723205 +0200
-@@ -1,3 +1,4 @@
-+#include "simucopter.h"
- #include "Copter.h"
- #include "version.h"
- 
-@@ -266,6 +267,9 @@
-     ins.set_hil_mode();
- #endif
- 
-+    // initialize and activate Simulink-ArduPilot Bridge server
-+    simucopter_init();
-+
-     // read Baro pressure at ground
-     //-----------------------------
-     init_barometer(true);
---- /home/pi/ardupilot/./ArduCopter/Parameters.cpp	2017-03-06 00:42:33.559473818 +0200
-+++ ./ArduCopter/Parameters.cpp	2017-03-06 01:10:05.347391730 +0200
-@@ -305,42 +305,42 @@
-     // @Param: FLTMODE1
-     // @DisplayName: Flight Mode 1
-     // @Description: Flight mode when Channel 5 pwm is <= 1230
--    // @Values: 0:Stabilize,1:Acro,2:AltHold,3:Auto,4:Guided,5:Loiter,6:RTL,7:Circle,9:Land,11:Drift,13:Sport,14:Flip,15:AutoTune,16:PosHold,17:Brake,18:Throw,19:Avoid_ADSB,20:Guided_NoGPS
-+    // @Values: 0:Stabilize,1:Acro,2:AltHold,3:Auto,4:Guided,5:Loiter,6:RTL,7:Circle,9:Land,11:Drift,13:Sport,14:Flip,15:AutoTune,16:PosHold,17:Brake,18:Throw,19:Avoid_ADSB,20:Guided_NoGPS,66:Simulink
-     // @User: Standard
-     GSCALAR(flight_mode1, "FLTMODE1",               FLIGHT_MODE_1),
- 
+diff -Naur ardupilot-orig/ArduCopter/Parameters.cpp ardupilot/ArduCopter/Parameters.cpp
+--- ardupilot-orig/ArduCopter/Parameters.cpp	2017-04-27 12:14:04.461793888 +0300
++++ ardupilot/ArduCopter/Parameters.cpp	2017-04-27 15:19:09.090010050 +0300
+@@ -313,35 +313,35 @@
      // @Param: FLTMODE2
      // @DisplayName: Flight Mode 2
      // @Description: Flight mode when Channel 5 pwm is >1230, <= 1360
@@ -121,14 +101,59 @@
      // @User: Standard
      GSCALAR(flight_mode6, "FLTMODE6",               FLIGHT_MODE_6),
  
---- /home/pi/ardupilot/./ArduCopter/Copter.h	2017-03-06 00:42:33.539473974 +0200
-+++ ./ArduCopter/Copter.h	2017-03-06 01:10:13.567327994 +0200
-@@ -764,6 +764,8 @@
-     void delay(uint32_t ms);
-     bool acro_init(bool ignore_checks);
-     void acro_run();
-+    bool simulink_init(bool ignore_checks);
-+    void simulink_run();
-     void get_pilot_desired_angle_rates(int16_t roll_in, int16_t pitch_in, int16_t yaw_in, float &roll_out, float &pitch_out, float &yaw_out);
-     bool althold_init(bool ignore_checks);
-     void althold_run();
+diff -Naur ardupilot-orig/ArduCopter/system.cpp ardupilot/ArduCopter/system.cpp
+--- ardupilot-orig/ArduCopter/system.cpp	2017-04-27 12:14:04.511792722 +0300
++++ ardupilot/ArduCopter/system.cpp	2017-04-27 14:29:40.338021281 +0300
+@@ -1,3 +1,4 @@
++#include "simucopter.h"
+ #include "Copter.h"
+ #include "version.h"
+ 
+@@ -266,6 +267,9 @@
+     ins.set_hil_mode();
+ #endif
+ 
++    // initialize simucopter server
++    simucopter_init();
++
+     // read Baro pressure at ground
+     //-----------------------------
+     init_barometer(true);
+diff -Naur ardupilot-orig/libraries/AP_HAL_SITL/system.cpp ardupilot/libraries/AP_HAL_SITL/system.cpp
+--- ardupilot-orig/libraries/AP_HAL_SITL/system.cpp	2017-04-27 12:14:06.841738532 +0300
++++ ardupilot/libraries/AP_HAL_SITL/system.cpp	2017-04-27 14:53:05.929493646 +0300
+@@ -3,6 +3,7 @@
+ 
+ #include <AP_HAL/AP_HAL.h>
+ #include <AP_HAL/system.h>
++#include "simucopter-server-sitl.h"
+ 
+ #include "Scheduler.h"
+ 
+@@ -19,6 +20,7 @@
+ void init()
+ {
+     gettimeofday(&state.start_time, nullptr);
++    simucopter_sitl_init();
+ }
+ 
+ void panic(const char *errormsg, ...)
+diff -Naur ardupilot-orig/Tools/ardupilotwaf/boards.py ardupilot/Tools/ardupilotwaf/boards.py
+--- ardupilot-orig/Tools/ardupilotwaf/boards.py	2017-04-27 12:14:05.041780357 +0300
++++ ardupilot/Tools/ardupilotwaf/boards.py	2017-04-27 14:30:19.077786249 +0300
+@@ -224,6 +224,7 @@
+ 
+         env.LIB += [
+             'm',
++            'zmq',
+         ]
+ 
+         cfg.check_librt(env)
+@@ -232,6 +233,7 @@
+         env.AP_LIBRARIES += [
+             'AP_HAL_SITL',
+             'SITL',
++            'bridge',
+         ]
+ 
+         if sys.platform == 'cygwin':
