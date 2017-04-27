@@ -88,7 +88,7 @@ find -type l -print -delete
 
 # hard links
 rm -fv src-ardupilot/simucopter.h
-rm -fv src-agent/simucopter.h
+rm -fv src-agent/simucopter.h src-agent/bridge.*
 rm -fv src-diagnostic/simucopter* src-diagnostic/Copter.h
 
 
@@ -105,8 +105,11 @@ ln -sv "${SIMUCOPTER_ROOT}/simucopter.h" "${SIMUCOPTER_ROOT}/src-ardupilot/"
 echo
 echo ">>> Preparing agent (MATLAB) source tree (src-agent)..."
 
-ln -sv "${SIMUCOPTER_ROOT}/simucopter.h" "${SIMUCOPTER_ROOT}/src-agent/"
-ln -sv "${SIMUCOPTER_ROOT}/bridge/bridge."* "${SIMUCOPTER_ROOT}/src-agent/"
+# using hard links so that copying agent files to the MATLAB PC won't become a
+# problem.
+
+ln -v "${SIMUCOPTER_ROOT}/simucopter.h" "${SIMUCOPTER_ROOT}/src-agent/"
+ln -v "${SIMUCOPTER_ROOT}/bridge/bridge."* "${SIMUCOPTER_ROOT}/src-agent/"
 
 ###############################################################################
 
