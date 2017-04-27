@@ -20,6 +20,14 @@ DIAG_SOURCES="
 
 ###############################################################################
 
+pushd () {
+    command pushd "$@" > /dev/null
+}
+
+popd () {
+    command popd "$@" > /dev/null
+}
+
 do_install_ardupilot () {
     set -e  # abort on non-zero return code (important!)
     pushd ${HOME}
@@ -80,13 +88,19 @@ echo ">>> Cleaning all links..."
 echo
 find -type l -print -delete
 
+# hard links
+rm -fv src-ardupilot/simucopter.h
+rm -fv src-agent/simucopter.h
+rm -fv src-diagnostic/simucopter* src-diagnostic/Copter.h
+
+
 ###############################################################################
 
 echo
 echo ">>> Linking simucopter.h across components..."
 echo
-for d in "src-agent src-ardupilot"; do
-    ln -v simucopter.h ${d}/
+for d in src-agent src-ardupilot; do
+    ln -v "${SIMUCOPTER_ROOT}/simucopter.h" "${d}/"
 
     # verify
     if [ ! -f "${d}/simucopter.h" ]; then
@@ -100,13 +114,9 @@ done
 echo
 echo ">>> Preparing bridge diagnostic component..."
 echo
-for f in ${DIAG_SOURCES}; do
-    ln -sv ${f} src-diagnostic/
 
-    # verify
-    if [ ! -f "src-diagnostic/${f}" ]; then
-        echo "WARNING/DIAGNOSTIC COMPONENT: LINK FAILED FOR ${f}"
-    fi
+for f in ${DIAG_SOURCES}; do
+    ln -sv "${SIMUCOPTER_ROOT}/${f}" "${SIMUCOPTER_ROOT}/src-diagnostic/"
 done
 
 ###############################################################################
@@ -159,10 +169,16 @@ echo
 popd  # AP_HAL_SITL
 popd  # ardupilot/libraries
 
-echo "  * Applying SimuCopter patch..."
-pushd ${ARDUPILOT_ROOT}
-patch -p1 < "${PATCH_ROOT}/simucopter.patch"
-popd
+echo "  * Checking if SimuCopter patch is needed..."
+grep --quiet simucopter "${ARDUPILOT_ROOT}/ArduCopter/system.cpp"
+if [ "$?" != "0" ]; then
+    echo "  * Applying SimuCopter patch..."
+    pushd ${ARDUPILOT_ROOT}
+    patch -p1 < "${PATCH_ROOT}/simucopter.patch"
+    popd
+else
+    echo "    - patch already applied - skipping this step"
+fi
 
 ###############################################################################
 
