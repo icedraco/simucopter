@@ -157,14 +157,14 @@ pushd "${ARDUPILOT_ROOT}/libraries"
 #---
 mkdir -p bridge
 pushd bridge
-ln -vs "${SIMUCOPTER_ROOT}/bridge/bridge*" ./
+ln -vs "${SIMUCOPTER_ROOT}/bridge/bridge"* ./
 echo
 popd  # bridge
 #---
 
 pushd AP_HAL_SITL
 echo "      > SITL bridge server"
-ln -vs "${SIMUCOPTER_ROOT}/src-sitl/*" ./
+ln -vs "${SIMUCOPTER_ROOT}/src-sitl/"* ./
 echo
 popd  # AP_HAL_SITL
 popd  # ardupilot/libraries
