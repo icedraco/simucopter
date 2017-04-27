@@ -21,7 +21,7 @@
 //-----------------------------------------------------------------------------
 #else
 #include <pthread.h>
-#include "src-diagnostic/Copter.h"
+#include "Copter.h"
 #include "simucopter-copter.h"
 #endif
 
