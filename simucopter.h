@@ -20,14 +20,10 @@
 #else
 #include <pthread.h>
 #include "simucopter-copter.h"
+#include "current-flight-mode.h"
 #endif
 
 #include "Copter.h"
-
-// TODO: DETERMINE THE NAME OF THE H FILE!
-#ifndef DIAGNOSTIC
-#include "TestFlightMode.h"
-#endif
 
 #define ADDR_ARDUCOPTER "tcp://127.0.0.1:5555"
 #define ADDR_SITL       "tcp://127.0.0.1:5556"
