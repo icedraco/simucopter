@@ -148,12 +148,12 @@ void simucopter_flight_mode_init()
 {
     // this function is activated by ArduPilot each time the "simulink"
     // flight mode is initialized
-    TestFlightMode_initialize();
+    current_flight_mode_initialize();
 }
 
 void simucopter_flight_mode_run()
 {
     // this function is activated by ArduPilot each time its step function
     // is activated
-    TestFlightMode_step();
+    current_flight_mode_step();
 }
