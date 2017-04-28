@@ -1,4 +1,4 @@
-  **NOTE**: The MATLAB/Simulink side of this project is located here: https://github.com/icedraco/simucopter-matlab
+>  **NOTE**: The MATLAB/Simulink side of this project is located here: https://github.com/icedraco/simucopter-matlab
   
 
 # Installing ArduPilot and SimuCopter
