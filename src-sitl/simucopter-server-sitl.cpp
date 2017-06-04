@@ -61,7 +61,7 @@ void simucopter_sitl_init()
         assert(false); // bridge_rep_socket() returned NULL
     }
 
-    hal.scheduler->register_timer_process(FUNCTOR_BIND(simucopter_sitl_step, void));
+    hal.scheduler->register_timer_process(FUNCTOR_BIND_MEMBER(simucopter_sitl_step, void));
 }
 
 void simucopter_sitl_stop()
