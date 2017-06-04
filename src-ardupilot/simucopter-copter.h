@@ -22,7 +22,7 @@ inline double copter_get_state_pitch() { return copter.ahrs.pitch; }
 
 inline double copter_get_desired_yaw() {
     float target_roll, target_pitch, target_yaw;
-    get_pilot_desired_angle_rates(
+    copter.get_pilot_desired_angle_rates(
             copter.channel_roll->get_control_in(),
             copter.channel_pitch->get_control_in(),
             copter.channel_yaw->get_control_in(),
@@ -35,7 +35,7 @@ inline double copter_get_desired_yaw() {
 
 inline double copter_get_desired_roll() {
     float target_roll, target_pitch, target_yaw;
-    get_pilot_desired_angle_rates(
+    copter.get_pilot_desired_angle_rates(
             copter.channel_roll->get_control_in(),
             copter.channel_pitch->get_control_in(),
             copter.channel_yaw->get_control_in(),
@@ -48,7 +48,7 @@ inline double copter_get_desired_roll() {
 
 inline double copter_get_desired_pitch() {
     float target_roll, target_pitch, target_yaw;
-    get_pilot_desired_angle_rates(
+    copter.get_pilot_desired_angle_rates(
             copter.channel_roll->get_control_in(),
             copter.channel_pitch->get_control_in(),
             copter.channel_yaw->get_control_in(),
