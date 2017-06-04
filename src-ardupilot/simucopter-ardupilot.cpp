@@ -26,7 +26,7 @@ void* simucopter_thread_run(void* p)
                 bridge_rep_confirm(msg.socket, msg.msg_id);
                 break;
             case MSG_SHUTDOWN:
-                simucopter_should_stop = 1;
+                flag_should_stop = 1;
                 bridge_rep_confirm(msg.socket, msg.msg_id);
                 break;
 
