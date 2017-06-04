@@ -1,6 +1,7 @@
 #ifndef SIMUCOPTER_BRIDGE_SIMUCOPTER_SERVER_SITL_H
 #define SIMUCOPTER_BRIDGE_SIMUCOPTER_SERVER_SITL_H
 
+#include <AP_HAL.h>
 #include "bridge/bridge.h"
 
 #define ADDR_SITL       "tcp://127.0.0.1:5556"

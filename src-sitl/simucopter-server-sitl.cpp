@@ -3,22 +3,22 @@
  * executable and knows how to handle SITL-specific messages
  */
 
-#include <pthread.h>
 #include <assert.h>
 
 #include "simucopter-server-sitl.h"
 
-void* simucopter_sitl_thread_run(void* p) {
+extern const AP_HAL::HAL& hal;
+
+static void* sock_rep;
+
+void simucopter_sitl_step()
+{
+    int rc;
     struct s_req_msg msg;
-    void* sock_rep = bridge_rep_socket(ADDR_SITL);
 
-    if (sock_rep == NULL) {
-        perror("bridge_rep_socket");
-        assert(false); // bridge_rep_socket() returned NULL
-    }
-
-    for (;;) {
-        msg = bridge_recv(sock_rep);
+    rc = bridge_recv(sock_rep, &msg);
+    assert(rc >= 0);
+    if (rc > 0) {
         assert(msg.flag_ok);
         switch (msg.msg_id) {
             case MSG_PING:
@@ -33,6 +33,8 @@ void* simucopter_sitl_thread_run(void* p) {
                 bridge_rep_confirm(msg.socket, msg.msg_id);
                 break;
         }
+    }
+
 
 // TODO: Implement setters as necessary using the example below
 //        if (msg.data_sz > 0) {
@@ -45,9 +47,6 @@ void* simucopter_sitl_thread_run(void* p) {
 //            bridge_rep_double(sock_rep, msg.msg_id, current_value);
 //            if (current_value == 0) i = 0; // reached end of list
 //        }
-    }
-
-    return NULL;
 }
 
 void simucopter_sitl_init()
@@ -56,9 +55,13 @@ void simucopter_sitl_init()
 
     // server-side initialization
     bridge_init();
+    sock_rep = bridge_rep_socket(ADDR_SITL);
+    if (sock_rep == NULL) {
+        perror("bridge_rep_socket");
+        assert(false); // bridge_rep_socket() returned NULL
+    }
 
-    pthread_t pt;
-    pthread_create(&pt, NULL, simucopter_sitl_thread_run, NULL);
+    hal.scheduler->register_timer_process(FUNCTOR_BIND(simucopter_sitl_step, void));
 }
 
 void simucopter_sitl_stop()
