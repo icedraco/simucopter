@@ -44,7 +44,7 @@ do_install_source_tree () {
     echo
     echo ">>> Loading submodules (if necessary)..."
     echo
-    if [ ! -f "bridge/bridge.cpp" ] || [ ! -f "simutool/simutool.py" ]; then
+    if [ ! -f "bridge/bridge.cpp" ]; then
         echo "      -> MISSING!"
         git submodule update --init --recursive
     fi
@@ -88,6 +88,8 @@ do_install_source_tree () {
     for f in ${DIAG_SOURCES}; do
         ln -sv "${SIMUCOPTER_ROOT}/${f}" "${SIMUCOPTER_ROOT}/src-diagnostic/"
     done
+
+    chmod +x ${SIMUCOPTER_ROOT}/*.sh
 
 }
 echo "--- SimuCopter System Installer Script 1.0 -----------------------------"
@@ -156,6 +158,7 @@ echo
 echo "  * Copying/linking SimuCopter files into ArduPilot..."
 echo "      > ArduCopter files..."
 cp -v "${PATCH_ROOT}/control_simulink.cpp" "${ARDUPILOT_ROOT}/ArduCopter/"
+ln -s "${SIMUCOPTER_ROOT}/src-ardupilot/simucopter"* "${ARDUPILOT_ROOT}/ArduCopter/"
 echo
 
 echo "      > general bridge library"
@@ -185,6 +188,28 @@ if [ "$?" != "0" ]; then
 else
     echo "    - patch already applied - skipping this step"
 fi
+
+###############################################################################
+
+# Building the project:
+
+echo "Which board to compile against?"
+select ans in "sitl" "navio2" "ABORT"; do
+    if [ "${ans}" != "abort" ]; then
+        echo "Compiling against '${ans}'..."
+        pushd ${ARDUPILOT_ROOT}
+        ./waf configure --board ${ans} && ./waf build --target bin/arducopter -j 4
+	if [ "$?" != "0" ]; then
+	    echo "FATAL: Compilation failed!"
+	    exit 1
+	fi
+        popd
+    else
+        echo
+        echo "Not compiling the project at this time..."
+    fi
+    break
+done
 
 ###############################################################################
 

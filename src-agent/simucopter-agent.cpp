@@ -49,7 +49,7 @@ void simucopter_requester_init()
     // this is a child process
     if (pid == 0) {
         // NOTE: USE ABSOLUTE PATHS!
-        execl("/usr/bin/python2.7", "python", "/home/pi/simucopter/simutool/simutool.py", "deploy", exe, (char*)0);
+        execl("/usr/bin/env", "bash", "/home/pi/simucopter/run-arducopter.sh", (char*)0);
 
         // execl() should not return, but if it does...
         perror("execl");
