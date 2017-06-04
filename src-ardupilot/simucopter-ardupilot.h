@@ -4,4 +4,6 @@
 #include "bridge/bridge.h"
 #include "simucopter.h"
 
+int simucopter_should_stop(void);
+
 #endif //SIMUCOPTER_BRIDGE_SIMUCOPTER_ARDUPILOT_H

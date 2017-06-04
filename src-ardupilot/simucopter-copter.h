@@ -6,6 +6,8 @@
 
 #include "Copter.h"
 
+inline int copter_get_flight_mode() { return copter.control_mode; }
+
 inline double copter_get_accel_x() { return copter.ins.get_accel(0).x; }
 inline double copter_get_accel_y() { return copter.ins.get_accel(0).y; }
 inline double copter_get_accel_z() { return copter.ins.get_accel(0).z; }
@@ -19,8 +21,8 @@ inline double copter_get_state_roll() { return copter.ahrs.roll; }
 inline double copter_get_state_pitch() { return copter.ahrs.pitch; }
 
 inline double copter_get_desired_yaw() { return copter.get_pilot_desired_yaw_rate(copter.channel_yaw->control_in); }
-inline double copter_get_desired_roll() { return -1.0; /* FIXME */ }
-inline double copter_get_desired_pitch() { return -1.0; /* FIXME */ }
+inline double copter_get_desired_roll() { return copter.get_pilot_desired_roll_rate(copter.channel_roll->control_in); }
+inline double copter_get_desired_pitch() { return copter.get_pilot_desired_pitch_rate(copter.channel_pitch->control_in); }
 inline double copter_get_desired_throttle() { return copter.get_pilot_desired_throttle(copter.channel_throttle->control_in); }
 
 inline void copter_set_rate_target_yaw(double yaw) { copter.attitude_control->rate_bf_yaw_target(yaw); }

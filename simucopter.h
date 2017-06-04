@@ -20,7 +20,6 @@
 #else
 #include <pthread.h>
 #include "simucopter-copter.h"
-#include "current-flight-mode.h"
 #endif
 
 #include "Copter.h"
@@ -47,9 +46,12 @@ void simucopter_flight_mode_run();
 \*****************************************************************************/
 
 #define MSG_PING                  0x0000
+#define MSG_SHUTDOWN              0xfffe
 #define MSG_ERROR                 0xffff
 
 // UAV-related messages start at 0x1000
+
+#define MSG_GET_FLIGHT_MODE       0x1000
 
 #define MSG_GET_ACCEL_X           0x1001
 #define MSG_GET_ACCEL_Y           0x1002
@@ -93,6 +95,7 @@ void simucopter_flight_mode_run();
 /** IMPORTANT:
  * These functions must be implemented by all sides executing the flight mode!
  */
+int copter_get_flight_mode();
 
 double copter_get_accel_x();
 double copter_get_accel_y();

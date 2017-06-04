@@ -4,10 +4,17 @@
 #include "simucopter-ardupilot.h"
 
 
+static int flag_should_stop = 0;
+
 void* simucopter_thread_run(void* p)
 {
     struct s_req_msg msg;
     void* sock_rep = bridge_rep_socket(ADDR_ARDUCOPTER);
+    union {
+        int i;
+        float f;
+        double d;
+    } data;
 
     assert(sock_rep);
 
@@ -18,7 +25,14 @@ void* simucopter_thread_run(void* p)
             case MSG_PING:
                 bridge_rep_confirm(msg.socket, msg.msg_id);
                 break;
+            case MSG_SHUTDOWN:
+                simucopter_should_stop = 1;
+                bridge_rep_confirm(msg.socket, msg.msg_id);
+                break;
 
+            case MSG_GET_FLIGHT_MODE:
+                bridge_rep_int(msg.socket, msg.msg_id, copter_get_flight_mode());
+                break;
             case MSG_GET_ACCEL_X:
                 bridge_rep_double(msg.socket, msg.msg_id, copter_get_accel_x());
                 break;
@@ -63,33 +77,68 @@ void* simucopter_thread_run(void* p)
                 break;
 
             case MSG_SET_RATE_TARGET_YAW:
-                // TODO
-                bridge_rep_confirm(msg.socket, msg.msg_id);
+                if (msg.data_sz > 0) {
+                    memcpy(&data, msg.data, msg.data_sz);
+                    copter_set_rate_target_yaw(data.d);
+                    bridge_rep_confirm(msg.socket, msg.msg_id);
+                } else {
+                    bridge_rep_confirm(msg.socket, MSG_ERROR);
+                }
                 break;
             case MSG_SET_RATE_TARGET_ROLL:
-                // TODO
-                bridge_rep_confirm(msg.socket, msg.msg_id);
+                if (msg.data_sz > 0) {
+                    memcpy(&data, msg.data, msg.data_sz);
+                    copter_set_rate_target_roll(data.d);
+                    bridge_rep_confirm(msg.socket, msg.msg_id);
+                } else {
+                    bridge_rep_confirm(msg.socket, MSG_ERROR);
+                }
                 break;
             case MSG_SET_RATE_TARGET_PITCH:
-                // TODO
-                bridge_rep_confirm(msg.socket, msg.msg_id);
+                if (msg.data_sz > 0) {
+                    memcpy(&data, msg.data, msg.data_sz);
+                    copter_set_rate_target_pitch(data.d);
+                    bridge_rep_confirm(msg.socket, msg.msg_id);
+                } else {
+                    bridge_rep_confirm(msg.socket, MSG_ERROR);
+                }
                 break;
 
             case MSG_SET_MOTORS_YAW:
-                // TODO
-                bridge_rep_confirm(msg.socket, msg.msg_id);
+                if (msg.data_sz > 0) {
+                    memcpy(&data, msg.data, msg.data_sz);
+                    copter_motors_set_yaw(data.d);
+                    bridge_rep_confirm(msg.socket, msg.msg_id);
+                } else {
+                    bridge_rep_confirm(msg.socket, MSG_ERROR);
+                }
                 break;
             case MSG_SET_MOTORS_ROLL:
-                // TODO
-                bridge_rep_confirm(msg.socket, msg.msg_id);
+                if (msg.data_sz > 0) {
+                    memcpy(&data, msg.data, msg.data_sz);
+                    copter_motors_set_roll(data.d);
+                    bridge_rep_confirm(msg.socket, msg.msg_id);
+                } else {
+                    bridge_rep_confirm(msg.socket, MSG_ERROR);
+                }
                 break;
             case MSG_SET_MOTORS_PITCH:
-                // TODO
-                bridge_rep_confirm(msg.socket, msg.msg_id);
+                if (msg.data_sz > 0) {
+                    memcpy(&data, msg.data, msg.data_sz);
+                    copter_motors_set_pitch(data.d);
+                    bridge_rep_confirm(msg.socket, msg.msg_id);
+                } else {
+                    bridge_rep_confirm(msg.socket, MSG_ERROR);
+                }
                 break;
             case MSG_SET_MOTORS_THROTTLE:
-                // TODO
-                bridge_rep_confirm(msg.socket, msg.msg_id);
+                if (msg.data_sz > 0) {
+                    memcpy(&data, msg.data, msg.data_sz);
+                    copter_motors_set_throttle(data.d);
+                    bridge_rep_confirm(msg.socket, msg.msg_id);
+                } else {
+                    bridge_rep_confirm(msg.socket, MSG_ERROR);
+                }
                 break;
 
             case MSG_GCS_SEND_TEXT:
@@ -98,7 +147,8 @@ void* simucopter_thread_run(void* p)
                 break;
 
             default:
-                bridge_rep_confirm(msg.socket, msg.msg_id);
+                // respond with an error: request not understood
+                bridge_rep_confirm(msg.socket, MSG_ERROR);
                 break;
         }
 
@@ -156,4 +206,9 @@ void simucopter_flight_mode_run()
     // this function is activated by ArduPilot each time its step function
     // is activated
     current_flight_mode_step();
+}
+
+int simucopter_should_stop(void)
+{
+    return flag_should_stop;
 }
