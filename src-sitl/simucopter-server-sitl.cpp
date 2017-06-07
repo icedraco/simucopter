@@ -9,15 +9,25 @@
 
 extern const AP_HAL::HAL& hal;
 
-static void* sock_rep;
+const SimucopterSitlServer sitlServer;
 
-void simucopter_sitl_step()
-{
-    int rc;
+void SimucopterSitlServer::init() {
+    // this function is activated from ArduPilot/SITL module
+
+    // server-side initialization
+    bridge_init();
+    sock_rep = bridge_rep_socket(ADDR_SITL, 0 /* blocking=0 */);
+    if (sock_rep == NULL) {
+        perror("bridge_rep_socket");
+        assert(false); // bridge_rep_socket() returned NULL
+    }
+
+    hal.scheduler->register_timer_process(FUNCTOR_BIND_MEMBER(&SimucopterSitlServer::step, void));
+}
+
+void SimucopterSitlServer::step() {
     struct s_req_msg msg;
-
-    rc = bridge_recv(sock_rep, &msg);
-    assert(rc >= 0);
+    int rc = bridge_recv(sock_rep, &msg);
     if (rc > 0) {
         assert(msg.flag_ok);
         switch (msg.msg_id) {
@@ -49,22 +59,11 @@ void simucopter_sitl_step()
 //        }
 }
 
-void simucopter_sitl_init()
-{
-    // this function is activated from ArduPilot/SITL module
 
-    // server-side initialization
-    bridge_init();
-    sock_rep = bridge_rep_socket(ADDR_SITL, 0 /* blocking=0 */);
-    if (sock_rep == NULL) {
-        perror("bridge_rep_socket");
-        assert(false); // bridge_rep_socket() returned NULL
-    }
-
-    hal.scheduler->register_timer_process(FUNCTOR_BIND_MEMBER(simucopter_sitl_step, void));
+void simucopter_sitl_init() {
+    sitlServer.init();
 }
 
-void simucopter_sitl_stop()
-{
-    // no way to stop yet
+void simucopter_sitl_stop() {
+    sitlServer.stop();
 }
