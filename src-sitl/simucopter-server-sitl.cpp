@@ -9,7 +9,7 @@
 
 extern const AP_HAL::HAL& hal;
 
-const SimucopterSitlServer sitlServer;
+SimucopterSitlServer sitlServer;
 
 void SimucopterSitlServer::init() {
     // this function is activated from ArduPilot/SITL module
