@@ -9,7 +9,7 @@ static int flag_should_stop = 0;
 void* simucopter_thread_run(void* p)
 {
     struct s_req_msg msg;
-    void* sock_rep = bridge_rep_socket(ADDR_ARDUCOPTER);
+    void* sock_rep = bridge_rep_socket(ADDR_ARDUCOPTER, 1);
     union {
         int i;
         float f;
