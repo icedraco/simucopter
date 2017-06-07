@@ -8,6 +8,7 @@ static int flag_should_stop = 0;
 
 void* simucopter_thread_run(void* p)
 {
+    int rc;  // return code
     struct s_req_msg msg;
     void* sock_rep = bridge_rep_socket(ADDR_ARDUCOPTER, 1);
     union {
@@ -19,7 +20,8 @@ void* simucopter_thread_run(void* p)
     assert(sock_rep);
 
     for (;;) {
-        msg = bridge_recv(sock_rep);
+        rc = bridge_recv(sock_rep, &msg);
+        assert(rc >= 0);
         assert(msg.flag_ok);
         switch (msg.msg_id) {
             case MSG_PING:
