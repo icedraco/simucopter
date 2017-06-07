@@ -55,7 +55,7 @@ void simucopter_sitl_init()
 
     // server-side initialization
     bridge_init();
-    sock_rep = bridge_rep_socket(ADDR_SITL);
+    sock_rep = bridge_rep_socket(ADDR_SITL, 0 /* blocking=0 */);
     if (sock_rep == NULL) {
         perror("bridge_rep_socket");
         assert(false); // bridge_rep_socket() returned NULL
