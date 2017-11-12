@@ -1,5 +1,7 @@
->  **NOTE**: The MATLAB/Simulink side of this project is located here: https://github.com/icedraco/simucopter-matlab
-  
+# IMPORTANT
+* This project is an older iteration of SimuCopter! **DO NOT USE IT!**
+* Refer to https://github.com/icedraco/simucopter-bridge for current version!
+
 
 # Installing ArduPilot and SimuCopter
 Follow the steps below to install ArduPilot and SimuCopter on the UAV / Raspberry Pi.
